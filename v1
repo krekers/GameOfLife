@@ -1,0 +1,224 @@
+program GameOfLife;
+uses Crt;
+var
+x,y,t,c,cc: Integer;
+r : String;
+masivs : array[1..119, 1..27] of Integer;
+const
+xg = Length(masivs);
+yg = Length(masivs[1]);
+var
+toBorn : array[1..xg, 1..yg] of Integer;
+toDie : array[1..xg, 1..yg] of Integer;
+//function'n'stuff//////////////////////////////////////////////////////////////
+Function checkCells(num1,num2 : Integer): Integer;
+var
+i : Integer;
+begin
+i:=0;
+   if (masivs[num1+1,num2-1] = 1) then
+    i:=i+1;
+   if (masivs[num1+1,num2] = 1) then
+    i:=i+1;
+   if (masivs[num1+1,num2+1] = 1) then
+    i:=i+1;
+   if (masivs[num1,num2-1] = 1) then
+    i:=i+1;
+   if (masivs[num1,num2+1] = 1) then
+    i:=i+1;
+   if (masivs[num1-1,num2-1] = 1) then
+    i:=i+1;
+   if (masivs[num1-1,num2] = 1) then
+    i:=i+1;
+   if (masivs[num1-1,num2+1] = 1) then
+    i:=i+1;
+   Exit(i);
+end;
+
+Function isAlive(): Boolean;
+begin
+for x:= 1 to xg do
+ for y:= 1 to yg do
+  if masivs[x,y] = 1 then
+  Exit(true);
+  Exit(False);
+end;
+
+Procedure init;
+begin
+for x:= 1 to xg do
+ for y:= 1 to yg do
+  masivs[x,y]:= 0;
+end;
+
+Procedure checkCellDie;
+var
+i : integer;
+begin
+for x:= 2 to xg-1 do
+ for y:= 2 to yg-1 do
+ begin
+  if (masivs[x,y] = 1) then
+  begin
+   i:= checkCells(x,y);
+   if (i < 2) or (i > 3) then
+   toDie[x,y]:= 1;
+  end;
+ end;
+end;
+
+Procedure cellDie;
+begin
+for x:= 2 to xg-1 do
+ for y:= 2 to yg-1 do
+ begin
+  if (toDie[x,y] = 1) then
+  begin
+   masivs[x,y]:=0;
+   toDie[x,y]:= 0;
+ end;
+end;
+end;
+
+Procedure checkCellBorn;
+var
+i : integer;
+begin
+for x:= 2 to xg-1 do
+ for y:= 2 to yg-1 do
+ begin
+  if (masivs[x,y] = 0) then
+  begin
+   i:= checkCells(x,y);
+   if (i = 3) then
+   toBorn[x,y]:= 1;
+  end;
+ end;
+end;
+
+Procedure cellBorn;
+var
+i : integer;
+begin
+for x:= 2 to xg-1 do
+ for y:= 2 to yg-1 do
+ begin
+  if (toBorn[x,y] = 1) then
+  begin
+   masivs[x,y]:=1;
+   toBorn[x,y]:=0;
+  end;
+ end;
+end;
+
+Procedure draw;
+begin
+ClrScr;
+for x:= 1 to xg do
+begin
+ for y:= 1 to yg do
+ begin
+  if (x = 1) or (y = 1) or (x = xg) or (y = yg) then
+  begin
+  GotoXY(x,y);
+  write('|');
+  end;
+  if (masivs[x,y] = 1) then
+   begin
+    GotoXY(x,y);
+    write(chr(3));
+  end;
+ end;
+writeln();
+end;
+end;
+
+Procedure setTime;
+var
+r : Integer;
+begin
+writeln('Ievadiet laiku ms');
+readln(r);
+t:=r;
+end;
+
+Procedure setCycles;
+var
+r : Integer;
+begin
+writeln('ievadiet ciklu skait');
+readln(r);
+c:=r;
+end;
+
+Procedure input;
+var
+xc,yc: Integer;
+r : String;
+begin
+xc:=1;
+yc:=1;
+draw;
+writeln('w,a,s,d - kusteties, i - ievietot vai nonemt, x - iziet');
+while true do
+begin
+ r:=ReadKey;
+ case r of
+  'x':Exit;
+  's':GotoXY(WhereX,WhereY+1);
+  'w':GotoXY(WhereX,WhereY-1);
+  'a':GotoXY(WhereX-1,WhereY);
+  'd':GotoXY(WhereX+1,WhereY);
+  'i':
+  if masivs[WhereX,Wherey] = 0 then
+  masivs[WhereX,WhereY]:= 1
+  else
+  masivs[WhereX,WhereY]:=0;
+ end;
+ xc:=WhereX;
+ yc:=WhereY;
+ draw;
+ GotoXY(xc,yc);
+ end;
+end;
+//function'n'stuff//////////////////////////////////////////////////////////////
+begin
+init;
+c:=10;
+t:=800;
+masivs[10,10]:=1;
+masivs[10,11]:=1;
+masivs[11,10]:=1;
+masivs[10,9]:=1;
+while true do
+begin
+r:='dd';
+cc:=0;
+
+ while r <> 's' do
+ begin
+  draw;
+  writeln('Komandas : ');
+  writeln('x-Iziet, i-Ievada, t-Laiks, c-Cik cikli, s-Turpinat, n-notirit ');
+  r:=readkey;
+  case r of
+  'x':Exit();
+  't':setTime;
+  'c':setCycles;
+  'i':input;
+  'n':init;
+  end;
+ end;
+ While (cc < c) and isAlive do
+ begin
+  delay(t);
+  cc:=cc+1;
+  checkCellBorn;
+  CheckCellDie;
+  cellBorn;
+  cellDie;
+  draw;
+ end;
+end;
+
+end.
